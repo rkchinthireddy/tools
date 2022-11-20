@@ -1,0 +1,66 @@
+global proc CopySkinWin(){
+    if(`window -ex copySkn`) deleteUI copySkn;
+    window -t "skinning" copySkn;
+    columnLayout -adj 1 -rs 10 customskin;
+        
+        rowColumnLayout -nc 2 -cw 1 150 -cw 2 50 -cs 1 5 -cs 2 2 -cs 3 15 -cs 4 2 -cs 5 10 -bgc .3 .3 .3 -rat 3 "top" 5 -ro 1 "top" 2 -ro 2 "top" 2; 
+            textField -tx "Sourse" -h 24 -ed 0 -bgc 0.1 0.1 0.1 source_mesh;
+            button -l "<<" -c "src()" -w 30 ;
+            textField -tx "Destination" -h 24 -ed 0 -bgc 0.1 0.1 0.1  destination_mesh;
+            button -l "<<" -c "destin()" -w 30 ;
+            button -l "CopySkinWeights" -c "csw()" -bgc 0.4 0.8 0.4 ;
+        setParent..;
+      
+    setParent..;
+    showWindow copySkn;
+}
+global proc src()
+{
+	textField -e -tx "" source_mesh;
+    string $sel[]=`ls -sl`;
+    int $selno=`size($sel)`;	
+    if ($selno==0)
+    {
+        textField -e -tx "Select Source"  source_mesh;
+    }
+    else{
+    textField -e -it $sel[0] source_mesh;
+    }
+}
+global proc destin()
+{
+    textField -e -tx "" destination_mesh;
+    string $sel[]=`ls -sl`;
+    int $selno=`size($sel)`;	
+    if ($selno==0)
+    {
+        textField -e -tx "Select Destination"  destination_mesh;
+    }
+    else{
+    	for($each in $sel){
+    		textField -e -it ($each+"\n") destination_mesh;
+    	}
+    
+    }
+}
+global proc csw()
+{
+	string $pick_source=`textField -q -tx source_mesh`;
+	string $sdfdsfdsf=`textField -q -tx destination_mesh`;
+	string $buffer[];
+	$token=`tokenize $sdfdsfdsf  "\n" $buffer`;
+	string $historynodes[]=`listHistory $pick_source`;
+	for($i=0;$i<=$token-1;$i++){
+		print $i;
+	    for($eachnode in $historynodes)
+	    {
+	        if(`nodeType $eachnode`=="skinCluster")
+	        {
+	        	string $getjoints[]=`skinCluster -q -inf $eachnode`;
+	        	string $destinskinCl[]=`skinCluster -tsb $getjoints $buffer[$i]`;
+	        	copySkinWeights  -ss $eachnode -ds $destinskinCl[0] -noMirror -surfaceAssociation closestPoint -influenceAssociation label -influenceAssociation oneToOne -influenceAssociation oneToOne;
+	        }
+		}
+	}
+}
+CopySkinWin()
